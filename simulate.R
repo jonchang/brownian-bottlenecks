@@ -1,45 +1,61 @@
 #!/usr/bin/env Rscript
 
+ghetto.ou.sim <- function (params, sample.every=params[["generations"]]/100) {
+	# params: individuals, loci, mutation.rate, generations,
+	# bottleneck.proportion, bottleneck.times
+	
+	individuals <- params[["individuals"]]
+	generations <- params[["generations"]]
+	mutation.rate <- params[["mutation.rate"]]
+	loci <- params[["loci"]]
+
+	bottleneck.at <- floor(params[["bottleneck.times"]] * generations)
+	# need to add 1 to account for first generation
+	sample.gens <- matrix(nrow=(generations / sample.every) + 1,
+						  ncol=individuals)
+	
+	prev.row <- rep.int(loci / 2, individuals)
+	
+	samprow <- 1
+	sample.gens[samprow, ] <- prev.row
+
+	for (i in 1:generations) {
+		if (!(i %% sample.every)) {
+			samprow <- samprow + 1
+			sample.gens[samprow, ] <- prev.row
+			cat(i, mean(prev.row), var(prev.row), sep="\t", fill=T)
+		}
+		
+		cur <- prev.row
+		# drift
+		cur <- sample(cur, length(cur), replace=TRUE)
+		
+		# mutation
+		cur <- rbinom(cur, cur, mutation.rate) +
+			   rbinom(cur, loci - cur, 1 - mutation.rate)
+			   
+		# bottleneck
+		if (i %in% bottleneck.at) {
+			tmp <- sample(cur, floor(bottleneck.prop * length(cur)))
+			cur <- sample(tmp, length(cur), replace=TRUE)
+		}
+		
+		prev.row <- cur
+	}
+	rownames(sample.gens) <- seq(0, generations, by=sample.every)
+	return(sample.gens)
+}
+
 individuals <- 1000
 loci <- 50
 mutation <- 10^-7
-generation <- 10^6
+generation <- 10^5
 bottleneck.prop <- 0.01
 bottleneck.time <- c(0.05, 0.2, 0.3, 0.4, 0.5)
-sample.every <- 10000
+sample.every <- 5000
 
-outfile <- file("sims.txt", "w")
-
-all.gens <- matrix(nrow=generation, ncol=individuals)
-
-prev.row <- rep.int(loci / 2, individuals)
-
-bottleneck.at <- floor(bottleneck.time * generation)
-
-cat("time", 1:individuals, sep="\t", file=outfile)
-cat("\n", file=outfile)
-cat(0, prev.row, sep="\t", file=outfile)
-cat("\n", file=outfile)
-for (i in 1:generation) {
-	if (!(i %% sample.every)) {
-		cat(i, prev.row, file=outfile, sep="\t")
-		cat("\n", file=outfile)
-		cat(i, mean(prev.row), var(prev.row), "\n", sep="\t")
-	}
-	cur <- prev.row
-	# drift
-	#cur <- sample(cur, length(cur), replace=TRUE)
-	# mutation
-	cur <- rbinom(cur, cur, mutation) + rbinom(cur, loci - cur, 1 - mutation)
-	# bottleneck
-	if (i %in% bottleneck.at) {
-		tmp <- sample(cur, floor(bottleneck.prop * length(cur)))
-		cur <- sample(tmp, length(cur), replace=TRUE)
-	}
-	prev.row <- cur
-}
-
-close(outfile)
+params <- list(individuals=individuals, loci=loci, mutation.rate=mutation, generations=generation, bottleneck.proportion=bottleneck.prop, bottleneck.times=bottleneck.time)
+res <- ghetto.ou.sim(params, sample.every=sample.every)
 
 df <- read.delim("sims.txt", header=T)
 library(reshape2)
