@@ -3,15 +3,15 @@
 source("sim_library.R")
 
 individuals <- 1000
-loci <- 50
-mutation <- 10^-5
-generation <- 10^5
+loci <- 1000
+mutation <- 10^-7
+generation <- 10^6
 bottleneck.prop <- 0.01
-bottleneck.time <- c(0.05, 0.2, 0.3, 0.4, 0.5)
-sample.every <- 5000
+bottleneck.time <- c(0.2)
+sample.every <- 10000
 
 params <- list(individuals=individuals, loci=loci, mutation.rate=mutation, generations=generation, bottleneck.proportion=bottleneck.prop, bottleneck.times=bottleneck.time)
-res <- ghetto.ou.sim(params, sample.every=sample.every)
+res <- ghetto.ou.sim(params, sample.every=sample.every, options=c("mutation"))
 
 df <- as.data.frame(res)
 df$time <- as.numeric(rownames(res))
