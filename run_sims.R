@@ -11,7 +11,7 @@ bottleneck.time <- c(0.2)
 sample.every <- 10000
 
 params <- list(individuals=individuals, loci=loci, mutation.rate=mutation, generations=generation, bottleneck.proportion=bottleneck.prop, bottleneck.times=bottleneck.time)
-res <- ghetto.ou.sim(params, sample.every=sample.every, options=c("mutation"))
+res <- run.sim(params, sample.every=sample.every, options=c("mutation"))
 
 df <- as.data.frame(res)
 df$time <- as.numeric(rownames(res))
