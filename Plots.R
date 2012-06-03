@@ -46,7 +46,7 @@ ggplot(data=h.raw, aes(x=time, y=trait.mean)) + geom_ribbon(aes(ymin=trait.mean-
 ### library(reshape2)
 ### library(plyr)
 
-### secondary data set for comparison
+### secondary data set for comparison t
 
 time_steps = 100000
 X2 = replicate(100, cumsum(c(0, rnorm(time_steps - 1))))
