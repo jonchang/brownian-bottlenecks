@@ -29,3 +29,7 @@ Examine the effects of population bottlenecks on trait evolution. Does the patte
 
   If the Brownian assumption holds for the population bottleneck scenario, the average trait value should not change from the initial trait value, and the trait variance should change in a similar way to the null (no population bottleneck) scenario.
 * Difference in variance between bottleneck and null scenarios over time. If the Brownian assumption holds, the delta variance should be close to 0. Also, see if the variance changes right after the bottleneck occurs.
+
+## Tests
+
+* T-test: difference from mean (x_i - xbar) between bottleneck and no-bottleneck scenarios
