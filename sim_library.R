@@ -1,8 +1,10 @@
 #!/usr/bin/env Rscript
 
-ghetto.ou.sim <- function (params, sample.every=params[["generations"]]/100) {
-	required <- c("individuals", "generations", "mutation.rate", "loci",
-				  "bottleneck.times", "bottleneck.proportion")
+run.sim <- function (params, sample.every=params[["generations"]]/100,
+					 options=c("drift", "mutation", "bottleneck")) {
+
+	ok.options <- c("drift", "mutation", "bottleneck")
+	options <- match.arg(options, ok.options, several.ok=TRUE)
 
 	individuals <- params[["individuals"]]
 	generations <- params[["generations"]]
@@ -27,15 +29,19 @@ ghetto.ou.sim <- function (params, sample.every=params[["generations"]]/100) {
 
 	for (i in 1:generations) {
 		cur <- prev.row
-		# drift
-		cur <- sample(cur, length(cur), replace=TRUE)
+
+		if ("drift" %in% options) {
+			cur <- sample(cur, length(cur), replace=TRUE)
+		}
 
 		# mutation
-		cur <- rbinom(cur, cur, mutation.rate) +
-			   rbinom(cur, loci - cur, 1 - mutation.rate)
+		if ("mutation" %in% options) {
+			cur <- rbinom(cur, cur, mutation.rate) +
+				   rbinom(cur, loci - cur, 1 - mutation.rate)
+		}
 
 		# bottleneck
-		if (i %in% bottleneck.at) {
+		if ("bottleneck" %in% options && i %in% bottleneck.at) {
 			tmp <- sample(cur, floor(bottleneck.proportion * length(cur)))
 			cur <- sample(tmp, length(cur), replace=TRUE)
 		}
