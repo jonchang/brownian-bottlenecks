@@ -17,7 +17,7 @@ Examine the effects of population bottlenecks on trait evolution. Does the patte
 * 1000 individuals
 * 50 loci (each "loci" is 100 bp)
 * 1e-5 mutation rate per loci (mutation rate per bp = 1e-8)
-* 1e6 generations
+* 1e6 generations 
 * Bottleneck at 25% of generations elapsed
 * Drift: sample 90% of individuals
 * Bottleneck: sample 10% of individuals
@@ -29,6 +29,8 @@ Examine the effects of population bottlenecks on trait evolution. Does the patte
 
   If the Brownian assumption holds for the population bottleneck scenario, the average trait value should not change from the initial trait value, and the trait variance should change in a similar way to the null (no population bottleneck) scenario.
 * Difference in variance between bottleneck and null scenarios over time. If the Brownian assumption holds, the delta variance should be close to 0. Also, see if the variance changes right after the bottleneck occurs.
+
+* Change in significance over time (could be block to show intervals of significance)
 
 ## Tests
 
