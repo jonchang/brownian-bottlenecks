@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 individuals <- 1000
-loci <- 50
+loci <- 100
 mutation <- 10^-5
 generation <- 10^5
 drift.prop <- 0.9
@@ -15,9 +15,9 @@ for (i in 2:generation) {
 	# mutation
 	cur <- rbinom(cur, cur, mutation) + rbinom(cur, loci - cur, 1 - mutation)
 	# drift
-	tmp <- sample(cur, drift.prop * length(cur))
-	cur <- sample(tmp, length(cur), replace=TRUE)
+	cur <- sample(cur, length(cur), replace=TRUE)
 	all.gens[i, ] <- cur
 }
 
-print(all.gens[generation, ])
+hist(all.gens[generation, ])
+
