@@ -31,17 +31,40 @@ raw.trait <- as.data.frame(cbind(time, trait.mean,trait.sd))
 
 h.raw <- head(raw.trait, 1000)
 
-### ribbon plot with gg plot
-
 install.packages("ggplot2")
 library(ggplot2)
 
+
+### ribbon plot with gg plot
 ### data goes here, change x,y to your liking
 
-ggplot(data=h.raw, aes(x=time, y=trait.mean)) + geom_ribbon(aes(ymin=trait.mean-trait.sd, ymax=trait.mean+trait.sd), color="#9933FF", fill="#9933FF") + geom_line() + scale_x_continuous("time (in generations)") + scale_y_continuous("trait value")
+ggplot(data=h.raw, aes(x=time, y=trait.mean)) + geom_ribbon(aes(ymin=trait.mean-2*trait.sd, ymax=trait.mean+2*trait.sd), color="#9933FF", fill="#9933FF") + geom_line() + scale_x_continuous("time (in generations)") + scale_y_continuous("trait value")
 
 ### convert to long form
 
-install.packages("reshape2")
-library(reshape2)
-library(plyr)
+### install.packages("reshape2")
+### library(reshape2)
+### library(plyr)
+
+### secondary data set for comparison
+
+time_steps = 100000
+X2 = replicate(100, cumsum(c(0, rnorm(time_steps - 1))))
+d2 <- as.data.frame(X2)
+colnames(d2) <- str_c("ind.",1:100)
+
+trait.mean <- apply(d2, 1, mean)
+
+# full set of differences (for future multiple t-tests)
+
+diff2 <- d2-trait.mean
+diff1 <- df-trait.mean
+
+### perform ttest on end data
+
+results <- t.test(diff1[100000,], diff2[100000,])
+results
+
+### ggplot practice
+
+ggplot(data=h.raw, aes(x=time, y=trait.mean))
