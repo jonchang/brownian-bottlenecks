@@ -105,4 +105,6 @@ ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected)) + geom_line() + geom_hline(
 
 pval <- []
 
-for (i in 1:100000)
+for (i in 1:100000){
+	pval[i] <- t.test(diff1[i,], diff2[i,])
+}
