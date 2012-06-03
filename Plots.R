@@ -4,6 +4,8 @@
 
 ### For practice -- simulated browninan motion trait data
 
+### WHEN USING REAL DATA BE SURE TO CHANGE NAMES AND TIME VALUES TO APPROPRIATE NUMBER OF GENERATIONS ###
+
 #install.packages("ape")
 library(ape)
 
@@ -37,15 +39,6 @@ library(ggplot2)
 library(reshape2)
 ### library(plyr)
 
-
-####################### RIBBON PLOTS #################################
-
-### ribbon plot with gg plot
-### data goes here, change x,y to your liking
-
-ggplot(data=h.raw, aes(x=time, y=trait.mean1)) + geom_ribbon(aes(ymin=trait.mean1-2*trait.sd1, ymax=trait.mean1+2*trait.sd1), color="#9933FF", fill="#9933FF") + geom_line() + scale_x_continuous("time (in generations)") + scale_y_continuous("trait value")
-
-
 ##################### GENERATE DATA SET 2 ############################
 
 ### secondary data set for comparison t
@@ -57,6 +50,13 @@ colnames(d2) <- str_c("ind.",1:100)
 
 trait.mean2 <- apply(d2, 1, mean)
 trait.sd2 <- apply(d2, 1, sd)
+
+####################### RIBBON PLOTS OF ONE DATASET ###################
+
+### ribbon plot with gg plot
+### data goes here, change x,y to your liking
+
+ggplot(data=h.raw, aes(x=time, y=trait.mean1)) + geom_ribbon(aes(ymin=trait.mean1-2*trait.sd1, ymax=trait.mean1+2*trait.sd1), color="#9933FF", fill="#9933FF") + geom_line() + scale_x_continuous("time (in generations)") + scale_y_continuous("trait value")
 
 #################### CALCULATE DIFF FROM MEAN ########################
 
@@ -94,11 +94,15 @@ sd.diff <- trait.sd2 - trait.sd1
 trait.comb <- cbind(trait.sd1, trait.sd2)
 mean.traits <- apply(trait.comb, 1, mean)
 sd.corrected <- sd.diff/mean.traits
-sd.corrected[1] <- 0
+sd.corrected[1] <- 0      # replace NA b/c can't divide by 0
 sd.diff.graph <- cbind(time,sd.corrected)
 
 sd.diff.df <- as.data.frame(sd.diff.graph)
 
 ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected)) + geom_line() + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("percent change in sd")
 
+################# CALCULATE P-VALUES OVER ALL GENERATIONS ############
 
+pval <- []
+
+for (i in 1:100000)
