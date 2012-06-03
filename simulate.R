@@ -2,10 +2,10 @@
 
 individuals <- 1000
 loci <- 50
-mutation <- 10^-6
+mutation <- 10^-7
 generation <- 10^6
 bottleneck.prop <- 0.01
-bottleneck.time <- c(0.2, 0.3, 0.4, 0.5)
+bottleneck.time <- c(0.05, 0.2, 0.3, 0.4, 0.5)
 sample.every <- 10000
 
 outfile <- file("sims.txt", "w")
