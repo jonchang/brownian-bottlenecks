@@ -10,7 +10,7 @@ ghetto.ou.sim <- function (params, sample.every=params[["generations"]]/100) {
 	bottleneck.times <- params[["bottleneck.times"]]
 	bottleneck.proportion <- params[["bottleneck.proportion"]]
 	loci <- params[["loci"]]
-	
+
 	if (generations %/% sample.every != generations / sample.every) {
 		stop("generations must be a multiple of sample.every")
 	}
@@ -26,12 +26,6 @@ ghetto.ou.sim <- function (params, sample.every=params[["generations"]]/100) {
 	sample.gens[samprow, ] <- prev.row
 
 	for (i in 1:generations) {
-		if (!(i %% sample.every)) {
-			samprow <- samprow + 1
-			sample.gens[samprow, ] <- prev.row
-			cat(i, mean(prev.row), var(prev.row), sep="\t", fill=T)
-		}
-
 		cur <- prev.row
 		# drift
 		cur <- sample(cur, length(cur), replace=TRUE)
@@ -47,6 +41,12 @@ ghetto.ou.sim <- function (params, sample.every=params[["generations"]]/100) {
 		}
 
 		prev.row <- cur
+
+		if (!(i %% sample.every)) {
+			samprow <- samprow + 1
+			sample.gens[samprow, ] <- prev.row
+			cat(i, mean(prev.row), var(prev.row), sep="\t", fill=T)
+		}
 	}
 	rownames(sample.gens) <- seq(0, generations, by=sample.every)
 	return(sample.gens)
