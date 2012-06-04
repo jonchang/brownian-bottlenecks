@@ -6,13 +6,59 @@
 
 ### WHEN USING REAL DATA BE SURE TO CHANGE NAMES AND TIME VALUES TO APPROPRIATE NUMBER OF GENERATIONS ###
 
+time <- 1:1000000
+bottleneck <- c(0.2)
+
+######### READ IN FILES AND CALC SD ###################################
+
+a <- matrix(data=NA, nrow=1000000, ncol=40)
+
+for (j in 1:20) {
+	filename <- paste("brownian_", i, ".txt", sep="")
+	datafile <- read.table(filename)
+	for (i in 1:1000000){
+		a[i,j] <- sd(datafile[i,])
+	}
+}
+
+for (j in 21:40) {
+	filename <- paste("brownian_", i, ".txt", sep="")
+	datafile <- read.table(filename)
+	for (i in 1:1000000){
+		a[i,j] <- sd(datafile[i,])
+	}
+}
+
+b <- matrix(data=NA, nrow=1000000, ncol=40)
+
+for (j in 1:20) {
+	filename <- paste("brownian_", i, ".txt", sep="")
+	datafile <- read.table(filename)
+	for (i in 1:1000000){
+		b[i,j] <- sd(datafile[i,])
+	}
+}
+
+for (j in 21:40) {
+	filename <- paste("brownian_", i, ".txt", sep="")
+	datafile <- read.table(filename)
+	for (i in 1:1000000){
+		b[i,j] <- sd(datafile[i,])
+	}
+}
+
+X.b <- a
+X2 <- b
+
+##############################################################################
+
 #install.packages("ape")
 library(ape)
 
 ### make data
 
-time_steps = 100000
-X.b = replicate(100, cumsum(c(0, rnorm(time_steps - 1))))
+#time_steps = 100000
+#X.b = replicate(100, cumsum(c(0, rnorm(time_steps - 1))))
 
 ### change to data frame
 ### did not use "rownames(m2) <- rownames(m2, do.NULL = FALSE, prefix = "Obs.")" example because didn't work for colnames
@@ -28,8 +74,6 @@ colnames(df) <- str_c("ind.",1:100)
 trait.mean1 <- apply(df, 1, mean)
 trait.sd1 <- apply(df, 1, sd) 
 
-time <- 1:100000
-
 #install.packages("ggplot2")
 library(ggplot2)
 #install.packages("reshape2")
@@ -38,8 +82,9 @@ library(reshape2)
 
 ##################### GENERATE DATA SET 2 ##############################
 
-time_steps = 100000
-X2 = replicate(100, cumsum(c(0, rnorm(time_steps - 1))))
+#time_steps = 100000
+#X2 = replicate(100, cumsum(c(0, rnorm(time_steps - 1))))
+
 d2 <- as.data.frame(X2)
 colnames(d2) <- str_c("ind.",1:100)
 
@@ -51,7 +96,7 @@ trait.sd2 <- apply(d2, 1, sd)
 bind <- cbind(time, trait.mean1, trait.mean2) 
 comp <- as.data.frame(bind)
 
-ggplot(data=comp, aes(time)) + geom_ribbon(aes(ymin=trait.mean1-2*trait.sd1, ymax=trait.mean1+2*trait.sd1), color="#FF0000", fill="#FF0000", alpha = 0.5) + geom_ribbon(aes(ymin=trait.mean2-2*trait.sd2, ymax=trait.mean2+2*trait.sd2), color="#0000FF", fill="#0000FF", alpha = 0.5) + geom_line(aes(y=trait.mean1), color="#FF0000") + geom_line(aes(y=trait.mean2), color="#0000FF") + scale_x_continuous("time (in generations)") + scale_y_continuous("trait value")
+ggplot(data=comp, aes(time)) + geom_ribbon(aes(ymin=trait.mean1-2*trait.sd1, ymax=trait.mean1+2*trait.sd1), color="#FF0000", fill="#FF0000", alpha = 0.5) + geom_ribbon(aes(ymin=trait.mean2-2*trait.sd2, ymax=trait.mean2+2*trait.sd2), color="#0000FF", fill="#0000FF", alpha = 0.5) + geom_line(aes(y=trait.mean1), color="#FF0000") + geom_line(aes(y=trait.mean2), color="#0000FF") + scale_x_continuous("time (in generations)") + scale_y_continuous("trait value")  + geom_vline(xintercept=bottleneck*length(time), color="red")
 
 #################### CALCULATE DIFF FROM MEAN #########################
 
@@ -69,20 +114,20 @@ dmc.g <- cbind(time, diff.mean.change)
 
 dmc.df <- as.data.frame(dmc.g)
 
-ggplot(data=dmc.df, aes(x=time, y=diff.mean.change)) + geom_line() + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("difference of mean difference")
+ggplot(data=dmc.df, aes(x=time, y=diff.mean.change)) + geom_line() + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("difference of mean difference") + geom_vline(xintercept=bottleneck*length(time), color="red")
 
 ################## GRAPH BOTH SDS V. TIME #############################
 
 sds <- cbind(time, trait.sd1, trait.sd2)
 sd.compare <- melt(as.data.frame(sds), id.vars="time")
 
-ggplot(data=sd.compare, aes(x=time, y=value, color=variable)) + geom_line()
+ggplot(data=sd.compare, aes(x=time, y=value, color=variable)) + geom_line()  + geom_vline(xintercept=bottleneck*length(time), color="red")
 
 ################# CALCULATE P-VALUES OVER ALL GENERATIONS #############
 
-pval <- matrix(data = NA, nrow = 100000, ncol = 1)
+pval <- matrix(data = NA, nrow = length(time), ncol = 1)
 
-for (i in 1:100000){
+for (i in 1:length(time)){
 	temp <- t.test(diff1[i,], diff2[i,])
 	pval[i] <- temp$p.value
 }
@@ -101,6 +146,6 @@ sd.diff.graph <- cbind(time, sd.corrected, pval)
 
 sd.diff.df <- as.data.frame(sd.diff.graph)
 
-ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected, color="pval")) + geom_line() + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in sd")
+ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected, color="pval")) + geom_line() + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in sd") + geom_vline(xintercept=bottleneck*length(time), color="red")
 
 
