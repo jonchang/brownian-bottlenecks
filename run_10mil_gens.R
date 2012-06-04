@@ -11,14 +11,14 @@ options(cores=4)
 params <- list(individuals           = 1000,
 			   loci                  = 1000,
 			   mutation.rate         = 4 * 10^-6,
-			   generations           = 10^7,
+			   generations           = 5 * 10^6,
 			   bottleneck.proportion = 0.01,
-			   bottleneck.times      = c(0.1, 0.11, 0.12, 0.13, 0.15)
+			   bottleneck.times      = c(0.1, 0.15, 0.2, 0.25, 0.3)
 )
 bottleneck.times.single <- 0.1
 
 save.run <- function(parms, filename, options) {
-	results <- run.sim(parms, sample.every=parms$generations/50,
+	results <- run.sim(parms, sample.every=parms$generations/200,
 					   options=options)
 	write.table(results, file=filename, col.names=FALSE)
 	lastrow <- results[nrow(results), ]
