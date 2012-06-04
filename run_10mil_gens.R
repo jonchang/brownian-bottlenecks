@@ -6,6 +6,7 @@ source("sim_library.R")
 
 num.runs <- 20
 folder <- "10mil_gens/"
+options(cores=4)
 
 params <- list(individuals           = 1000,
 			   loci                  = 1000,
@@ -17,7 +18,7 @@ params <- list(individuals           = 1000,
 bottleneck.times.single <- 0.1
 
 save.run <- function(parms, filename, options) {
-	results <- run.sim(parms, sample.every=parms$generations/10,
+	results <- run.sim(parms, sample.every=parms$generations/50,
 					   options=options)
 	write.table(results, file=filename, col.names=FALSE)
 	lastrow <- results[nrow(results), ]
