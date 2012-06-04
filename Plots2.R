@@ -40,10 +40,10 @@ for (j in 1:20) {
 	}
 }
 
-b <- matrix(data=NA, nrow=21, ncol=40)
+b <- matrix(data=NA, nrow=21, ncol=20)
 
 for (j in 1:20) {
-	filename <- paste("brownian_replicates_2/bottleneck_", j, ".txt", sep="")
+	filename <- paste("single_bottleneck/bottleneck_", j, ".txt", sep="")
 	datafile <- read.table(file=filename,row.names=1)
 	for (i in 1:21){
 		b[i,j] <- apply(datafile[i,],1,sd)
@@ -51,19 +51,6 @@ for (j in 1:20) {
 		if (i==21){
 			print("file complete")
 		}
-	}
-}
-
-for (j in 1:20) {
-	filename <- paste("brownian_replicates_2/bottleneck_", j, ".txt", sep="")
-	datafile <- read.table(file=filename,row.names=1)
-	for (i in 1:21){
-		b[i,j+20] <- apply(datafile[i,],1,sd)
-		print(paste("processing generation", i*50000-50000, "of", filename))
-		if (i==21){
-			print("file complete")
-		}
-
 	}
 }
 
@@ -170,7 +157,7 @@ sd.diff.graph <- cbind(time, sd.corrected, pval)
 
 sd.diff.df <- as.data.frame(sd.diff.graph)
 
-ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected)) + geom_line(aes(color=-pval)) + geom_point(aes(color=-pval, size=-pval)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in sd") + geom_vline(xintercept=c(200000,300000,400000,500000,600000), color="red")
+ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected)) + geom_line(aes(color=-pval)) + geom_point(aes(color=-pval, size=-pval)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in sd") + geom_vline(xintercept=c(200000), color="red")
 ggsave(filename="fuckingdone.pdf")
 
 
