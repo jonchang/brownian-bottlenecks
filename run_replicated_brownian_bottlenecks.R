@@ -4,10 +4,12 @@ library(multicore)
 library(reshape2)
 source("sim_library.R")
 
+num.runs <- 20
+
 params <- list(individuals           = 1000,
 			   loci                  = 1000,
 			   mutation.rate         = 10^-7,
-			   generations           = 10^4,
+			   generations           = 10^6,
 			   bottleneck.proportion = 0.01,
 			   bottleneck.times      = c(0.2, 0.3, 0.4, 0.5, 0.6)
 )
@@ -34,13 +36,12 @@ brownian.bottleneck <- function(parms, index) {
 
 dir.create("brownian_replicates", showWarnings=FALSE, recursive=TRUE)
 
-res <- mclapply(1:10, brownian.only, parms=params)
+res <- mclapply(seq_len(num.runs), brownian.only, parms=params)
 df <- data.frame(res)
-colnames(df) <- 1:10
+colnames(df) <- seq_len(num.runs)
 write.table(df, file="brownian_replicates/brownian_summary.txt")
 
-res <- mclapply(1:10, brownian.bottleneck, parms=params)
+res <- mclapply(seq_len(num.runs), brownian.bottleneck, parms=params)
 df <- data.frame(res)
-colnames(df) <- 1:10
+colnames(df) <- seq_len(num.runs)
 write.table(df, file="brownian_replicates/bottleneck_summary.txt")
-
