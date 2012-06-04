@@ -36,12 +36,16 @@ brownian.bottleneck <- function(parms, index) {
 
 dir.create("brownian_replicates", showWarnings=FALSE, recursive=TRUE)
 
-res <- mclapply(seq_len(num.runs), brownian.only, parms=params)
+brown <- parallel(mclapply(seq_len(num.runs), brownian.only, parms=params))
+bottle <- parallel(mclapply(seq_len(num.runs), brownian.bottleneck, parms=params))
+alljobs <- collect(list(brown, bottle))
+
+res <- alljobs[as.character(brown$pid)]
 df <- data.frame(res)
 colnames(df) <- seq_len(num.runs)
 write.table(df, file="brownian_replicates/brownian_summary.txt")
 
-res <- mclapply(seq_len(num.runs), brownian.bottleneck, parms=params)
+res <- alljobs[as.character(bottle$pid)]
 df <- data.frame(res)
 colnames(df) <- seq_len(num.runs)
 write.table(df, file="brownian_replicates/bottleneck_summary.txt")
