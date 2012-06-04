@@ -29,19 +29,14 @@ trait.mean1 <- apply(df, 1, mean)
 trait.sd1 <- apply(df, 1, sd) 
 
 time <- 1:100000
-raw.trait <- as.data.frame(cbind(time, trait.mean1,trait.sd1))
-
-h.raw <- head(raw.trait, 1000)
 
 #install.packages("ggplot2")
 library(ggplot2)
-### install.packages("reshape2")
+#install.packages("reshape2")
 library(reshape2)
-### library(plyr)
+#library(plyr)
 
-##################### GENERATE DATA SET 2 ############################
-
-### secondary data set for comparison t
+##################### GENERATE DATA SET 2 ##############################
 
 time_steps = 100000
 X2 = replicate(100, cumsum(c(0, rnorm(time_steps - 1))))
@@ -51,26 +46,21 @@ colnames(d2) <- str_c("ind.",1:100)
 trait.mean2 <- apply(d2, 1, mean)
 trait.sd2 <- apply(d2, 1, sd)
 
-####################### RIBBON PLOTS OF ONE DATASET ###################
+####################### RIBBON PLOTS OF TWO DATASETS ####################
 
-### ribbon plot with gg plot
-### data goes here, change x,y to your liking
+bind <- cbind(time, trait.mean1, trait.mean2) 
+comp <- as.data.frame(bind)
 
-ggplot(data=h.raw, aes(x=time, y=trait.mean1)) + geom_ribbon(aes(ymin=trait.mean1-2*trait.sd1, ymax=trait.mean1+2*trait.sd1), color="#9933FF", fill="#9933FF") + geom_line() + scale_x_continuous("time (in generations)") + scale_y_continuous("trait value")
+ggplot(data=comp, aes(time)) + geom_ribbon(aes(ymin=trait.mean1-2*trait.sd1, ymax=trait.mean1+2*trait.sd1), color="#FF0000", fill="#FF0000", alpha = 0.5) + geom_ribbon(aes(ymin=trait.mean2-2*trait.sd2, ymax=trait.mean2+2*trait.sd2), color="#0000FF", fill="#0000FF", alpha = 0.5) + geom_line(aes(y=trait.mean1, color="#FF0000")) + geom_line(aes(y=trait.mean2, color="#0000FF")) + scale_x_continuous("time (in generations)") + scale_y_continuous("trait value")
 
-#################### CALCULATE DIFF FROM MEAN ########################
+#################### CALCULATE DIFF FROM MEAN #########################
 
 ### full set of differences (for future multiple t-tests)
 
 diff2 <- d2-trait.mean2
 diff1 <- df-trait.mean1
 
-### perform ttest on end data
-
-#results <- t.test(diff1[100000,], diff2[100000,])
-#results
-
-################## GRAPH MEAN CHANGE IN DIFF V. TIME #################
+################## GRAPH MEAN CHANGE IN DIFF V. TIME ##################
 
 diff.mean1 <- apply(diff1, 1, mean)
 diff.mean2 <- apply(diff2, 1, mean)
@@ -81,30 +71,36 @@ dmc.df <- as.data.frame(dmc.g)
 
 ggplot(data=dmc.df, aes(x=time, y=diff.mean.change)) + geom_line() + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("difference of mean difference")
 
-################## GRAPH BOTH SDS V. TIME ############################
+################## GRAPH BOTH SDS V. TIME #############################
 
 sds <- cbind(time, trait.sd1, trait.sd2)
 sd.compare <- melt(as.data.frame(sds), id.vars="time")
 
 ggplot(data=sd.compare, aes(x=time, y=value, color=variable)) + geom_line()
 
-################# GRAPH CORRECTED CHANGE IN SD V. TIME ###############
+################# CALCULATE P-VALUES OVER ALL GENERATIONS #############
+
+pval <- matrix(data = NA, nrow = 100000, ncol = 1)
+
+for (i in 1:100000){
+	temp <- t.test(diff1[i,], diff2[i,])
+	pval[i] <- temp$p.value
+}
+
+pval[1] <- 1       # replace NA b/c couldn't perform T-test on exact same distributions
+pval <- as.vector(pval)        # change matrix to vector
+
+################# GRAPH CORRECTED CHANGE IN SD V. TIME with P-VALUE LEGEND ###############
 
 sd.diff <- trait.sd2 - trait.sd1
 trait.comb <- cbind(trait.sd1, trait.sd2)
 mean.traits <- apply(trait.comb, 1, mean)
 sd.corrected <- sd.diff/mean.traits
 sd.corrected[1] <- 0      # replace NA b/c can't divide by 0
-sd.diff.graph <- cbind(time,sd.corrected)
+sd.diff.graph <- cbind(time, sd.corrected, pval)
 
 sd.diff.df <- as.data.frame(sd.diff.graph)
 
-ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected)) + geom_line() + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("percent change in sd")
+ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected, color="pval")) + geom_line() + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in sd")
 
-################# CALCULATE P-VALUES OVER ALL GENERATIONS ############
 
-pval <- []
-
-for (i in 1:100000){
-	pval[i] <- t.test(diff1[i,], diff2[i,])
-}
