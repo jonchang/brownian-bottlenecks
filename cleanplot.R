@@ -34,14 +34,18 @@ individuals.lineages <- 1000
 # make sure to fix size of matricies for number of files#
 
 # create matrix
-a <- matrix(data=NA, nrow=201, ncol=20)
+aa <- matrix(data=NA, nrow=201, ncol=20)
+dd <- matrix(data=NA, nrow=201, ncol=20)
+gg <- matrix(data=NA, nrow=201, ncol=20)
 
 # import file then perform sd and put into a, move to next file and next column, etc.
 for (j in 1:20) {
 	filename <- paste("10mil_gens/brownian_", j, ".txt", sep="")
 	datafile <- read.table(file=filename,row.names=1)
 	for (i in 1:201){
-		a[i,j] <- apply(datafile[i,],1,sd)
+		aa[i,j] <- apply(datafile[i,],1,var)
+		dd[i,j] <- apply(datafile[i,],1,mean)
+		gg[i,j] <- apply(datafile[i,],1,kurtosis)
 		print(paste("processing generation", i*time[2]-time[2], "of", filename))
 		if (i==201){
 			print("file complete")
@@ -49,13 +53,17 @@ for (j in 1:20) {
 	}
 }
 
-b <- matrix(data=NA, nrow=201, ncol=20)
+bb <- matrix(data=NA, nrow=201, ncol=20)
+ee <- matrix(data=NA, nrow=201, ncol=20)
+hh <- matrix(data=NA, nrow=201, ncol=20)
 
 for (j in 1:20) {
 	filename <- paste("10mil_gens/single_bottleneck_", j, ".txt", sep="")
 	datafile <- read.table(file=filename,row.names=1)
 	for (i in 1:201){
-		b[i,j] <- apply(datafile[i,],1,sd)
+		bb[i,j] <- apply(datafile[i,],1,var)
+		ee[i,j] <- apply(datafile[i,],1,mean)
+		hh[i,j] <- apply(datafile[i,],1,kurtosis)
 		print(paste("processing generation", i*time[2]-time[2], "of", filename))
 		if (i==201){
 			print("file complete")
@@ -63,13 +71,17 @@ for (j in 1:20) {
 	}
 }
 
-c <- matrix(data=NA, nrow=201, ncol=20)
+cc <- matrix(data=NA, nrow=201, ncol=20)
+ff <- matrix(data=NA, nrow=201, ncol=20)
+ii <- matrix(data=NA, nrow=201, ncol=20)
 
 for (j in 1:20) {
 	filename <- paste("10mil_gens/multi_bottleneck_", j, ".txt", sep="")
 	datafile <- read.table(file=filename,row.names=1)
 	for (i in 1:201){
-		c[i,j] <- apply(datafile[i,],1,sd)
+		cc[i,j] <- apply(datafile[i,],1,var)
+		ff[i,j] <- apply(datafile[i,],1,mean)
+		ii[i,j] <- apply(datafile[i,],1,kurtosis)
 		print(paste("processing generation", i*time[2]-time[2], "of", filename))
 		if (i==201){
 			print("file complete")
@@ -79,39 +91,56 @@ for (j in 1:20) {
 
 ##### DATA FRAME #####
 
-brownian <- as.data.frame(a)
-single <- as.data.frame(b)
-multi <- as.data.frame(c)
+brownian.var <- as.data.frame(aa)
+single.var <- as.data.frame(bb)
+multi.var <- as.data.frame(cc)
+
+brownian.mean <- as.data.frame(dd)
+single.mean <- as.data.frame(ee)
+multi.mean <- as.data.frame(ff)
+
+brownian.kurtosis <- as.data.frame(gg)
+single.kurtosis <- as.data.frame(hh)
+multi.mean <- as.data.frame(ii)
+
 
 ##### CALCULATE MEANS OF SDS #####
 
 # mean for each time step #
-mean.b <- apply(brownian, 1, mean)
-mean.s <- apply(single, 1, mean)
-mean.m <- apply(multi, 1, mean)
+v.mean.b <- apply(brownian.var, 1, mean)
+v.mean.s <- apply(single.var, 1, mean)
+v.mean.m <- apply(multi.var, 1, mean)
 
-################################################################
-##### SINGLE BOTTLENECK v. NO BOTTLENECK CORRECTED MEAN SD #####
-################################################################
+m.mean.b <- apply(brownian.mean, 1, mean)
+m.mean.s <- apply(single.mean, 1, mean)
+m.mean.m <- apply(multi.mean, 1, mean)
+
+k.mean.b <- apply(brownian.kurtosis, 1, kurtosis)
+k.mean.s <- apply(single.kurtosis, 1, kurtosis)
+k.mean.m <- apply(multi.kurtosis, 1, kurtosis)
+
+#################################################################
+##### SINGLE BOTTLENECK v. NO BOTTLENECK CORRECTED MEAN VAR #####
+#################################################################
 
 ##### CALCULATE P-VALUES FOR EACH DATAPOINT #####
 
-pval <- as.vector(matrix(data = NA, nrow = 201, ncol = 1))
+pval.s.v <- as.vector(matrix(data = NA, nrow = 201, ncol = 1))
 
 for (i in 1:201){
-	temp <- t.test(brownian[i,], single[i,])
-	pval[i] <- temp$p.value
+	temp <- t.test(brownian.var[i,], single.var[i,])
+	pval.s.v[i] <- temp$p.value
 }
 
 # replace NA b/c t-test between identical distributions
-pval[1] <- 1    
+pval.s.v[1] <- 1    
 
-p.value <- pval
+p.value <- pval.s.v
 
 ##### GRAPH #####
 
-sd.diff <- mean.b - mean.s
-trait.comb <- cbind(mean.b, mean.s)
+sd.diff <- v.mean.b - v.mean.s
+trait.comb <- cbind(v.mean.b, v.mean.s)
 mean.traits <- apply(trait.comb, 1, mean)
 sd.corrected <- sd.diff/mean.traits
 sd.corrected[1] <- 0      # replace NA b/c can't divide by 0
@@ -119,31 +148,31 @@ sd.diff.graph <- cbind(time, sd.corrected, p.value)
 
 sd.diff.df <- as.data.frame(sd.diff.graph)
 
-ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected)) + geom_line(aes(color=-p.value)) + geom_point(aes(color=-p.value, size=-p.value)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in sd") + geom_vline(xintercept=c(bottleneck.single*realtime), color="red")
-ggsave(filename="single_v_noBN_final.pdf")
+ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected)) + geom_line(aes(color=-p.value)) + geom_point(aes(color=-p.value, size=-p.value)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in var") + geom_vline(xintercept=c(bottleneck.single*realtime), color="red")
+ggsave(filename="single_v_noBN_final_VAR.pdf")
 
-##############################################################
-##### MULTIBOTTLENECK v. NO BOTTLENECK CORRECTED MEAN SD #####
-##############################################################
+###############################################################
+##### MULTIBOTTLENECK v. NO BOTTLENECK CORRECTED MEAN VAR #####
+###############################################################
 
 ##### CALCULATE P-VALUES FOR EACH DATAPOINT #####
 
-pval <- as.vector(matrix(data = NA, nrow = 201, ncol = 1))
+pval.m.v <- as.vector(matrix(data = NA, nrow = 201, ncol = 1))
 
 for (i in 1:201){
-	temp <- t.test(brownian[i,], multi[i,])
-	pval[i] <- temp$p.value
+	temp <- t.test(brownian.var[i,], multi.var[i,])
+	pval.m.v[i] <- temp$p.value
 }
 
 # replace NA b/c t-test between identical distributions
-pval[1] <- 1    
+pval.m.v[1] <- 1    
 
-p.value <- pval
+p.value <- pval.m.v
 
 ##### GRAPH #####
 
-sd.diff <- mean.b - mean.m
-trait.comb <- cbind(mean.b, mean.m)
+sd.diff <- v.mean.b - v.mean.m
+trait.comb <- cbind(v.mean.b, v.mean.m)
 mean.traits <- apply(trait.comb, 1, mean)
 sd.corrected <- sd.diff/mean.traits
 sd.corrected[1] <- 0      # replace NA b/c can't divide by 0
@@ -151,63 +180,72 @@ sd.diff.graph <- cbind(time, sd.corrected, p.value)
 
 sd.diff.df <- as.data.frame(sd.diff.graph)
 
-ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected)) + geom_line(aes(color=-p.value)) + geom_point(aes(color=-p.value, size=-p.value)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in sd") + geom_vline(xintercept=c(bottleneck.multi*realtime), color="red")
-ggsave(filename="multi_v_noBN_final.pdf")
+ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected)) + geom_line(aes(color=-p.value)) + geom_point(aes(color=-p.value, size=-p.value)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in var") + geom_vline(xintercept=c(bottleneck.multi*realtime), color="red")
+ggsave(filename="multi_v_noBN_final_VAR.pdf")
 
-############################################
-##### RIBBON PLOT MEAN DATA COLLECTION #####
-############################################
+#######################################################################
+##### SINGLE BOTTLENECK v. NO BOTTLENECK DIFFERENCE MEAN KURTOSIS #####
+#######################################################################
 
-a <- matrix(data=NA, nrow=201, ncol=20)
+##### CALCULATE P-VALUES FOR EACH DATAPOINT #####
 
-# import file then perform sd and put into a, move to next file and next column, etc.
-for (j in 1:20) {
-	filename <- paste("10mil_gens/brownian_", j, ".txt", sep="")
-	datafile <- read.table(file=filename,row.names=1)
-	for (i in 1:201){
-		a[i,j] <- apply(datafile[i,],1,sd)
-		print(paste("processing generation", i*time[2]-time[2], "of", filename))
-		if (i==201){
-			print("file complete")
-		}
-	}
+pval.s.k <- as.vector(matrix(data = NA, nrow = 201, ncol = 1))
+
+for (i in 1:201){
+	temp <- t.test(brownian.kurtosis[i,], single.kurtosis[i,])
+	pval.s.k[i] <- temp$p.value
 }
 
-b <- matrix(data=NA, nrow=201, ncol=20)
+# replace NA b/c t-test between identical distributions
+pval.s.k[1] <- 1    
 
-for (j in 1:20) {
-	filename <- paste("10mil_gens/single_bottleneck_", j, ".txt", sep="")
-	datafile <- read.table(file=filename,row.names=1)
-	for (i in 1:201){
-		b[i,j] <- apply(datafile[i,],1,sd)
-		print(paste("processing generation", i*time[2]-time[2], "of", filename))
-		if (i==201){
-			print("file complete")
-		}
-	}
+p.value <- pval.s.k
+
+##### GRAPH #####
+
+k.diff <- k.mean.b - k.mean.s
+k.diff.graph <- cbind(time, k.diff.graph, p.value)
+
+k.diff.df <- as.data.frame(k.diff.graph)
+
+ggplot(data=k.diff.df, aes(x=time, y=k.diff)) + geom_line(aes(color=-p.value)) + geom_point(aes(color=-p.value, size=-p.value)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("difference in kurtosis") + geom_vline(xintercept=c(bottleneck.single*realtime), color="red")
+ggsave(filename="single_v_noBN_final_KUR.pdf")
+
+########################################################################
+##### MULTIBOTTLENECK v. NO BOTTLENECK DIFFERENCE IN MEAN KURTOSIS #####
+########################################################################
+
+##### CALCULATE P-VALUES FOR EACH DATAPOINT #####
+
+pval.m.k <- as.vector(matrix(data = NA, nrow = 201, ncol = 1))
+
+for (i in 1:201){
+	temp <- t.test(brownian.kurtosis[i,], multi.kurtosis[i,])
+	pval.m.k[i] <- temp$p.value
 }
 
-c <- matrix(data=NA, nrow=201, ncol=20)
+# replace NA b/c t-test between identical distributions
+pval.m.k[1] <- 1    
 
-for (j in 1:20) {
-	filename <- paste("10mil_gens/multi_bottleneck_", j, ".txt", sep="")
-	datafile <- read.table(file=filename,row.names=1)
-	for (i in 1:201){
-		c[i,j] <- apply(datafile[i,],1,sd)
-		print(paste("processing generation", i*time[2]-time[2], "of", filename))
-		if (i==201){
-			print("file complete")
-		}
-	}
-}
+p.value <- pval.m.k
+
+##### GRAPH #####
+
+k.diff <- k.mean.b - k.mean.s
+k.diff.graph <- cbind(time, k.diff, p.value)
+
+k.diff.df <- as.data.frame(k.diff.graph)
+
+ggplot(data=k.diff.df, aes(x=time, y=k.diff)) + geom_line(aes(color=-p.value)) + geom_point(aes(color=-p.value, size=-p.value)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("difference in kurtosis") + geom_vline(xintercept=c(bottleneck.multi*realtime), color="red")
+ggsave(filename="multi_v_noBN_final_KUR.pdf")
 
 
-#################################################
-##### RIBBON PLOT OF SINGLE v. NO BOTTLNECK #####
-#################################################
+####################################################################
+##### RIBBON PLOT OF SINGLE v. NO BOTTLNECK MEAN AND VARIANCES #####
+####################################################################
 
-bind <- cbind(time, m., trait.mean2) 
-#comp <- as.data.frame(bind)
+bind <- cbind(time, m.mean.b, m.mean.s) 
+comp <- melt(as.data.frame(bind), id.var="time")
 
-#ggplot(data=comp, aes(time)) + geom_ribbon(aes(ymin=trait.mean1-2*trait.sd1, ymax=trait.mean1+2*trait.sd1), color="#FF0000", fill="#FF0000", alpha = 0.5) + geom_ribbon(aes(ymin=trait.mean2-2*trait.sd2, ymax=trait.mean2+2*trait.sd2), color="#0000FF", fill="#0000FF", alpha = 0.5) + geom_line(aes(y=trait.mean1), color="#FF0000") + geom_line(aes(y=trait.mean2), color="#0000FF") + scale_x_continuous("time (in generations)") + scale_y_continuous("mean sd (trait value)")  + geom_vline(xintercept=bottleneck*length(time), color="red")
-#ggsave(filename=ribbonplotofmeanofsds.pdf)
+ggplot(data=comp, aes(time)) + geom_ribbon(aes(ymin=m.mean.b-2*trait.sd1, ymax=trait.mean1+2*trait.sd1), color="#FF0000", fill="#FF0000", alpha = 0.5) + geom_ribbon(aes(ymin=trait.mean2-2*trait.sd2, ymax=trait.mean2+2*trait.sd2), color="#0000FF", fill="#0000FF", alpha = 0.5) + geom_line(aes(y=trait.mean1), color="#FF0000") + geom_line(aes(y=trait.mean2), color="#0000FF") + scale_x_continuous("time (in generations)") + scale_y_continuous("mean sd (trait value)")  + geom_vline(xintercept=bottleneck*length(time), color="red")
+ggsave(filename=ribbonplotofmeanofsds.pdf)
