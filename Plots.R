@@ -51,7 +51,7 @@ trait.sd2 <- apply(d2, 1, sd)
 bind <- cbind(time, trait.mean1, trait.mean2) 
 comp <- as.data.frame(bind)
 
-ggplot(data=comp, aes(time)) + geom_ribbon(aes(ymin=trait.mean1-2*trait.sd1, ymax=trait.mean1+2*trait.sd1), color="#FF0000", fill="#FF0000", alpha = 0.5) + geom_ribbon(aes(ymin=trait.mean2-2*trait.sd2, ymax=trait.mean2+2*trait.sd2), color="#0000FF", fill="#0000FF", alpha = 0.5) + geom_line(aes(y=trait.mean1, color="#FF0000")) + geom_line(aes(y=trait.mean2, color="#0000FF")) + scale_x_continuous("time (in generations)") + scale_y_continuous("trait value")
+ggplot(data=comp, aes(time)) + geom_ribbon(aes(ymin=trait.mean1-2*trait.sd1, ymax=trait.mean1+2*trait.sd1), color="#FF0000", fill="#FF0000", alpha = 0.5) + geom_ribbon(aes(ymin=trait.mean2-2*trait.sd2, ymax=trait.mean2+2*trait.sd2), color="#0000FF", fill="#0000FF", alpha = 0.5) + geom_line(aes(y=trait.mean1), color="#FF0000") + geom_line(aes(y=trait.mean2), color="#0000FF") + scale_x_continuous("time (in generations)") + scale_y_continuous("trait value")
 
 #################### CALCULATE DIFF FROM MEAN #########################
 
