@@ -2,48 +2,68 @@
 
 ##################### Trait evolution plots ###################################
 
-### For practice -- simulated browninan motion trait data
+### For practice -- simulated brownian motion trait data
 
 ### WHEN USING REAL DATA BE SURE TO CHANGE NAMES AND TIME VALUES TO APPROPRIATE NUMBER OF GENERATIONS ###
 
-time <- 1:1000000
+realtime <- 1000000
+time <- c(0, 50000, 100000, 150000, 200000, 250000, 300000, 350000, 400000, 450000, 500000, 550000, 600000, 650000, 700000, 750000, 800000, 850000, 900000, 950000, 1000000)
 bottleneck <- c(0.2)
+loci <- 1000
+individuals <- 1000
 
 ######### READ IN FILES AND CALC SD ###########################################
 
-a <- matrix(data=NA, nrow=1000000, ncol=40)
+a <- matrix(data=NA, nrow=21, ncol=40)
 
 for (j in 1:20) {
 	filename <- paste("brownian_replicates/brownian_", j, ".txt", sep="")
-	datafile <- read.table(filename)
-	for (i in 1:1000000){
+	datafile <- read.table(file=filename,row.names=1)
+	for (i in 1:21){
 		a[i,j] <- apply(datafile[i,],1,sd)
+		print(paste("processing generation", i*50000-50000, "of", filename))
+		if (i==21){
+			print("file complete")
+		}
 	}
 }
 
 for (j in 1:20) {
 	filename <- paste("brownian_replicates_2/brownian_", j, ".txt", sep="")
-	datafile <- read.table(filename)
-	for (i in 1:1000000){
+	datafile <- read.table(file=filename,row.names=1)
+	for (i in 1:21){
 		a[i,j+20] <- apply(datafile[i,],1,sd)
+		print(paste("processing generation", i*50000-50000, "of", filename))
+		if (i==21){
+			print("file complete")
+		}
 	}
 }
 
-b <- matrix(data=NA, nrow=1000000, ncol=40)
+b <- matrix(data=NA, nrow=21, ncol=40)
 
 for (j in 1:20) {
-	filename <- paste("brownian_replicates_bottleneck_", j, ".txt", sep="")
-	datafile <- read.table(filename)
-	for (i in 1:1000000){
+	filename <- paste("brownian_replicates_2/bottleneck_", j, ".txt", sep="")
+	datafile <- read.table(file=filename,row.names=1)
+	for (i in 1:21){
 		b[i,j] <- apply(datafile[i,],1,sd)
+		print(paste("processing generation", i*50000-50000, "of", filename))
+		if (i==21){
+			print("file complete")
+		}
 	}
 }
 
 for (j in 1:20) {
-	filename <- paste("brownian_replicates_2_bottleneck_", j, ".txt", sep="")
-	datafile <- read.table(filename)
-	for (i in 1:1000000){
+	filename <- paste("brownian_replicates_2/bottleneck_", j, ".txt", sep="")
+	datafile <- read.table(file=filename,row.names=1)
+	for (i in 1:21){
 		b[i,j+20] <- apply(datafile[i,],1,sd)
+		print(paste("processing generation", i*50000-50000, "of", filename))
+		if (i==21){
+			print("file complete")
+		}
+
 	}
 }
 
@@ -127,14 +147,14 @@ trait.sd2 <- apply(d2, 1, sd)
 
 ################# CALCULATE P-VALUES OVER ALL GENERATIONS #############
 
-pval <- matrix(data = NA, nrow = length(time), ncol = 1)
+pval <- matrix(data = NA, nrow = 21, ncol = 1)
 
-for (i in 1:length(time)){
+for (i in 1:21){
 	temp <- t.test(a[i,], b[i,])
 	pval[i] <- temp$p.value
 }
 
-#pval[1] <- 1       # replace NA b/c couldn't perform T-test on exact same distributions
+pval[1] <- 1       # replace NA b/c couldn't perform T-test on exact same distributions
 pval <- as.vector(pval)        # change matrix to vector
 
 ################# GRAPH CORRECTED CHANGE IN SD V. TIME with P-VALUE LEGEND ###############
@@ -145,12 +165,12 @@ sd.diff <- trait.mean2 - trait.mean1
 trait.comb <- cbind(trait.mean1, trait.mean2)
 mean.traits <- apply(trait.comb, 1, mean)
 sd.corrected <- sd.diff/mean.traits
-#sd.corrected[1] <- 0      # replace NA b/c can't divide by 0
+sd.corrected[1] <- 0      # replace NA b/c can't divide by 0
 sd.diff.graph <- cbind(time, sd.corrected, pval)
 
 sd.diff.df <- as.data.frame(sd.diff.graph)
 
-ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected, color="pval")) + geom_line() + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in sd") + geom_vline(xintercept=bottleneck*length(time), color="red")
+ggplot(data=sd.diff.df, aes(x=time, y=sd.corrected)) + geom_line(aes(size=pval)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("corrected change in sd") + geom_vline(xintercept=c(200000,300000,400000,500000,600000), color="red")
 ggsave(filename="fuckingdone.pdf")
 
 
