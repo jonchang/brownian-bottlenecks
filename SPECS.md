@@ -15,8 +15,11 @@ Examine the effects of population bottlenecks on trait evolution. Does the patte
 ## Parameters
 
 * 1000 individuals
-* 50 loci (each "loci" is 100 bp)
-* 1e-5 mutation rate per loci (mutation rate per bp = 1e-8)
+* 1000 loci (each "loci" is 1200 bp)
+* 10^-8 - mutation rate per bp per generation
+    * assume 4 fold-degeneracy at first and second site of codon. 
+    * thus 1/3 of 1200 is 400
+    * 4 x 10^-6 - NON-SYNONYMOUS MUTATION RATE PER LOCI PER GENERATION
 * 1e6 generations 
 * Bottleneck at 25% of generations elapsed
 * Drift: sample 90% of individuals
