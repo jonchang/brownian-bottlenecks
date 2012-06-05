@@ -10,6 +10,7 @@ library(ggplot2)
 library(reshape2)
 library(plyr)
 library(stringr)
+library(moments)
 
 ##### SETTINGS #####
 
@@ -37,16 +38,22 @@ individuals.lineages <- 1000
 aa <- matrix(data=NA, nrow=201, ncol=20)
 dd <- matrix(data=NA, nrow=201, ncol=20)
 gg <- matrix(data=NA, nrow=201, ncol=20)
+jj <- matrix(data=NA, nrow=201, ncol=20)
+#mm <- matrix(data=NA, nrow=201, ncol=20)
+
 
 # import file then perform sd and put into a, move to next file and next column, etc.
 for (j in 1:20) {
 	filename <- paste("10mil_gens/brownian_", j, ".txt", sep="")
 	datafile <- read.table(file=filename,row.names=1)
 	for (i in 1:201){
+		print(paste("processing generation", i*time[2]-time[2], "of", filename))
 		aa[i,j] <- apply(datafile[i,],1,var)
 		dd[i,j] <- apply(datafile[i,],1,mean)
-		gg[i,j] <- apply(datafile[i,],1,kurtosis)
-		print(paste("processing generation", i*time[2]-time[2], "of", filename))
+		gg[i,j] <- apply(datafile[i,],1,kurtosis)   # Pearson's calculation
+		jj[i,j] <- apply(datafile[i,],1,skewness)
+#		temp <- apply(datafile[i,],1,jarque.test)
+#		mm[i,j] <- temp$p.value
 		if (i==201){
 			print("file complete")
 		}
@@ -56,15 +63,20 @@ for (j in 1:20) {
 bb <- matrix(data=NA, nrow=201, ncol=20)
 ee <- matrix(data=NA, nrow=201, ncol=20)
 hh <- matrix(data=NA, nrow=201, ncol=20)
+kk <- matrix(data=NA, nrow=201, ncol=20)
+#nn <- matrix(data=NA, nrow=201, ncol=20)
 
 for (j in 1:20) {
 	filename <- paste("10mil_gens/single_bottleneck_", j, ".txt", sep="")
 	datafile <- read.table(file=filename,row.names=1)
 	for (i in 1:201){
+		print(paste("processing generation", i*time[2]-time[2], "of", filename))
 		bb[i,j] <- apply(datafile[i,],1,var)
 		ee[i,j] <- apply(datafile[i,],1,mean)
 		hh[i,j] <- apply(datafile[i,],1,kurtosis)
-		print(paste("processing generation", i*time[2]-time[2], "of", filename))
+		kk[i,j] <- apply(datafile[i,],1,skewness)
+#		temp <- apply(datafile[i,],1,jarque.test)
+#		nn[i,j] <- temp$p.value
 		if (i==201){
 			print("file complete")
 		}
@@ -74,15 +86,20 @@ for (j in 1:20) {
 cc <- matrix(data=NA, nrow=201, ncol=20)
 ff <- matrix(data=NA, nrow=201, ncol=20)
 ii <- matrix(data=NA, nrow=201, ncol=20)
+ll <- matrix(data=NA, nrow=201, ncol=20)
+oo <- matrix(data=NA, nrow=201, ncol=20)
 
 for (j in 1:20) {
 	filename <- paste("10mil_gens/multi_bottleneck_", j, ".txt", sep="")
 	datafile <- read.table(file=filename,row.names=1)
 	for (i in 1:201){
+		print(paste("processing generation", i*time[2]-time[2], "of", filename))
 		cc[i,j] <- apply(datafile[i,],1,var)
 		ff[i,j] <- apply(datafile[i,],1,mean)
 		ii[i,j] <- apply(datafile[i,],1,kurtosis)
-		print(paste("processing generation", i*time[2]-time[2], "of", filename))
+		ll[i,j] <- apply(datafile[i,],1,skewness)
+#		temp <- apply(datafile[i,],1,jarque.test)
+#		oo[i,j] <- temp$p.value
 		if (i==201){
 			print("file complete")
 		}
@@ -101,8 +118,15 @@ multi.mean <- as.data.frame(ff)
 
 brownian.kurtosis <- as.data.frame(gg)
 single.kurtosis <- as.data.frame(hh)
-multi.mean <- as.data.frame(ii)
+multi.kurtosis <- as.data.frame(ii)
 
+brownian.skewness <- as.data.frame(jj)
+single.skewness <- as.data.frame(kk)
+multi.skewness <- as.data.frame(ll)
+
+#brownian.jarq_pval <- as.data.frame(mm)
+#single.jarq_pval <- as.data.frame(nn)
+#multi.jarq_pval <- as.data.frame(oo)
 
 ##### CALCULATE MEANS OF SDS #####
 
@@ -115,9 +139,13 @@ m.mean.b <- apply(brownian.mean, 1, mean)
 m.mean.s <- apply(single.mean, 1, mean)
 m.mean.m <- apply(multi.mean, 1, mean)
 
-k.mean.b <- apply(brownian.kurtosis, 1, kurtosis)
-k.mean.s <- apply(single.kurtosis, 1, kurtosis)
-k.mean.m <- apply(multi.kurtosis, 1, kurtosis)
+k.mean.b <- apply(brownian.kurtosis, 1, mean)
+k.mean.s <- apply(single.kurtosis, 1, mean)
+k.mean.m <- apply(multi.kurtosis, 1, mean)
+
+#j.mean.b <- apply(brownian.jarq_pval, 1, mean)
+#j.mean.s <- apply(single.jarq_pval, 1, mean)
+#j.mean.m <- apply(multi.jarq_pval, 1, mean)
 
 #################################################################
 ##### SINGLE BOTTLENECK v. NO BOTTLENECK CORRECTED MEAN VAR #####
@@ -203,12 +231,12 @@ p.value <- pval.s.k
 
 ##### GRAPH #####
 
-k.diff <- k.mean.b - k.mean.s
-k.diff.graph <- cbind(time, k.diff.graph, p.value)
+k1.diff <- k.mean.b - k.mean.s
+k1.diff.graph <- cbind(time, k1.diff, p.value)
 
-k.diff.df <- as.data.frame(k.diff.graph)
+k1.diff.df <- as.data.frame(k1.diff.graph)
 
-ggplot(data=k.diff.df, aes(x=time, y=k.diff)) + geom_line(aes(color=-p.value)) + geom_point(aes(color=-p.value, size=-p.value)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("difference in kurtosis") + geom_vline(xintercept=c(bottleneck.single*realtime), color="red")
+ggplot(data=k1.diff.df, aes(x=time, y=k1.diff)) + geom_line(aes(color=-p.value)) + geom_point(aes(color=-p.value, size=-p.value)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("difference in kurtosis") + geom_vline(xintercept=c(bottleneck.single*realtime), color="red")
 ggsave(filename="single_v_noBN_final_KUR.pdf")
 
 ########################################################################
@@ -231,12 +259,12 @@ p.value <- pval.m.k
 
 ##### GRAPH #####
 
-k.diff <- k.mean.b - k.mean.s
-k.diff.graph <- cbind(time, k.diff, p.value)
+k2.diff <- k.mean.b - k.mean.m
+k2.diff.graph <- cbind(time, k2.diff, p.value)
 
-k.diff.df <- as.data.frame(k.diff.graph)
+k2.diff.df <- as.data.frame(k2.diff.graph)
 
-ggplot(data=k.diff.df, aes(x=time, y=k.diff)) + geom_line(aes(color=-p.value)) + geom_point(aes(color=-p.value, size=-p.value)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("difference in kurtosis") + geom_vline(xintercept=c(bottleneck.multi*realtime), color="red")
+ggplot(data=k2.diff.df, aes(x=time, y=k2.diff)) + geom_line(aes(color=-p.value)) + geom_point(aes(color=-p.value, size=-p.value)) + geom_hline(yintercept=0, color="orange", linetype=2) + scale_x_continuous("time (in generations)") + scale_y_continuous("difference in kurtosis") + geom_vline(xintercept=c(bottleneck.multi*realtime), color="red")
 ggsave(filename="multi_v_noBN_final_KUR.pdf")
 
 
