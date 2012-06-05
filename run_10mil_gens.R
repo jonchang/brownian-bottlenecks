@@ -5,13 +5,13 @@ library(reshape2)
 source("sim_library.R")
 
 num.runs <- 20
-folder <- "10mil_gens/"
+folder <- "runs/"
 options(cores=4)
 
 params <- list(individuals           = 1000,
 			   loci                  = 1000,
 			   mutation.rate         = 4 * 10^-6,
-			   generations           = 5 * 10^6,
+			   generations           = 10^6 + 10^5,
 			   bottleneck.proportion = 0.01,
 			   bottleneck.times      = c(0.1, 0.15, 0.2, 0.25, 0.3)
 )
@@ -44,7 +44,7 @@ single.bottleneck <- function(parms, index) {
 }
 
 
-dir.create("10mil_gens", showWarnings=FALSE, recursive=TRUE)
+dir.create(folder, showWarnings=FALSE, recursive=TRUE)
 
 brown <- parallel(mclapply(seq_len(num.runs), brownian.only, parms=params))
 mbottle <- parallel(mclapply(seq_len(num.runs), multi.bottleneck, parms=params))
