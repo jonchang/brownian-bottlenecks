@@ -51,7 +51,7 @@ for (j in 1:20) {
 		aa[i,j] <- apply(datafile[i,],1,var)
 		dd[i,j] <- apply(datafile[i,],1,mean)
 		gg[i,j] <- apply(datafile[i,],1,kurtosis)   # Pearson's calculation
-		jj[i,j] <- apply(datafile[i,],1,skewness)
+		jj[i,j] <- apply(datafile[i,],1,skewness)   # Pearson's calculation
 #		temp <- apply(datafile[i,],1,jarque.test)
 #		mm[i,j] <- temp$p.value
 		if (i==201){
@@ -129,9 +129,16 @@ multi.skewness <- as.data.frame(ll)
 #multi.jarq_pval <- as.data.frame(oo)
 
 #fix initial kurtosis value#
-brownian.kurtosis[1,] <- -1
-single.kurtosis[1,] <- -1
-multi.kurtosis[1,] <- -1
+#uniform distribution#
+brownian.kurtosis[1,] <- 1.8
+single.kurtosis[1,] <- 1.8
+multi.kurtosis[1,] <- 1.8
+
+#fix initial skew value#
+#uniform distribution#
+brownian.skewness[1,] <- 0
+single.skewness[1,] <- 0
+multi.skewness[1,] <- 0
 
 ##### CALCULATE MEANS OF SDS #####
 
@@ -147,6 +154,10 @@ m.mean.m <- apply(multi.mean, 1, mean)
 k.mean.b <- apply(brownian.kurtosis, 1, mean)
 k.mean.s <- apply(single.kurtosis, 1, mean)
 k.mean.m <- apply(multi.kurtosis, 1, mean)
+
+s.mean.b <- apply(brownian.skewness, 1, mean)
+s.mean.s <- apply(single.skewness, 1, mean)
+s.mean.m <- apply(multi.skewness, 1, mean)
 
 #j.mean.b <- apply(brownian.jarq_pval, 1, mean)
 #j.mean.s <- apply(single.jarq_pval, 1, mean)
@@ -334,5 +345,15 @@ ggsave(filename="ribbonplotcloseupNOvMULT.pdf", height=5.5, width=8)
 
 ##### SKEW OVER TIME #####
 
-##### KURTOSIS OVER TIME #####
+skew <- melt(as.data.frame(cbind(time, s.mean.b, s.mean.s, s.mean.m)), id.vars="time")
 
+ggplot(data=skew, aes(x=time, y=value, color=variable)) + geom_line() + scale_x_continuous("time (in generations)") + scale_y_continuous("skewness") + geom_vline(xintercept=bottleneck.multi*realtime, color="black")
+ggsave(filename="skewovertime.pdf", height=5.5, width=8)
+
+##### KURTOSIS OVER TIME #####
+new <- as.data.frame(cbind(time, k.mean.b, k.mean.s, k.mean.m))
+new[1,2:4] <- 0        # set kurtosis at 0 though 1 is biologically correct in order to fix
+kurt <- melt(new, id.vars="time")
+
+ggplot(data=kurt, aes(x=time, y=value, color=variable)) + geom_line() + scale_x_continuous("time (in generations)") + scale_y_continuous("kurtosis") + geom_vline(xintercept=bottleneck.multi*realtime, color="black")
+ggsave(filename="kurtosisovertime.pdf", height=5.5, width=8)
