@@ -5,13 +5,13 @@ library(reshape2)
 source("sim_library.R")
 
 num.runs <- 20
-folder <- "runs/"
-options(cores=4)
+folder <- "nondrift_runs/"
+options(cores=1)
 
 params <- list(individuals           = 1000,
 			   loci                  = 1000,
-			   mutation.rate         = 4 * 10^-6,
-			   generations           = 10^6 + 10^5,
+			   mutation.rate         = 10^-8,
+			   generations           = 10^6,
 			   bottleneck.proportion = 0.01,
 			   bottleneck.times      = c(0.1, 0.15, 0.2, 0.25, 0.3)
 )
